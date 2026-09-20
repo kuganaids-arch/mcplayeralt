@@ -1,26 +1,31 @@
 # MC_PLAYER ALT
 
-Single-server Discord bot built with Node.js and discord.js 14.
+Single-server Discord bot built with Node.js and discord.js 14, deployable as a Render Web Service.
 
-## Setup
+## Render Web Service setup
 
-1. Install dependencies:
+- **Service type:** Web Service
+- **Build command:** `npm install`
+- **Start command:** `npm run deploy && npm start`
+- **Health check path:** `/health`
 
-   ```bash
-   npm install
-   ```
+Add these environment variables in Render:
 
-2. Copy `.env.example` to `.env` and fill in the Discord application values.
-3. Register the slash commands:
+```text
+TOKEN=your_discord_bot_token
+CLIENT_ID=your_discord_application_id
+GUILD_ID=your_single_server_id
+```
 
-   ```bash
-   npm run deploy
-   ```
+Render provides the `PORT` variable automatically. The bot listens on `0.0.0.0` and exposes `/health` so the Web Service remains compatible with Render's health checks.
 
-4. Start the bot:
+## Local setup
 
-   ```bash
-   npm start
-   ```
+```bash
+npm install
+cp .env.example .env
+npm run deploy
+npm start
+```
 
-The bot is locked to `GUILD_ID` and will not operate in other servers.
+The bot is locked to `GUILD_ID` and will not operate in other servers. Never commit `.env` or your bot token.

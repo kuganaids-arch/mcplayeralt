@@ -1,6 +1,6 @@
+const http = require('node:http');
 const {
   Client, GatewayIntentBits, Partials, EmbedBuilder,
-  PermissionsBitField,
 } = require('discord.js');
 const { commandMap } = require('./handlers/commandRegistry');
 require('dotenv').config();
@@ -10,8 +10,31 @@ for (const key of ['TOKEN', 'CLIENT_ID', 'GUILD_ID']) {
 }
 
 const client = new Client({
-  intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildMembers, GatewayIntentBits.GuildMessages, GatewayIntentBits.MessageContent, GatewayIntentBits.GuildVoiceStates],
+  intents: [
+    GatewayIntentBits.Guilds,
+    GatewayIntentBits.GuildMembers,
+    GatewayIntentBits.GuildMessages,
+    GatewayIntentBits.MessageContent,
+    GatewayIntentBits.GuildVoiceStates,
+  ],
   partials: [Partials.Channel, Partials.Message, Partials.User],
+});
+
+// Render Web Services require an HTTP listener. This lightweight health endpoint
+// keeps the service compatible with Render without changing bot behavior.
+const healthServer = http.createServer((request, response) => {
+  if (request.url === '/health' || request.url === '/') {
+    const ready = client.isReady();
+    response.writeHead(ready ? 200 : 503, { 'Content-Type': 'application/json' });
+    response.end(JSON.stringify({ status: ready ? 'ok' : 'starting', bot: ready }));
+    return;
+  }
+  response.writeHead(404, { 'Content-Type': 'application/json' });
+  response.end(JSON.stringify({ error: 'Not found' }));
+});
+
+healthServer.listen(Number(process.env.PORT) || 10000, '0.0.0.0', () => {
+  console.log(`Health server listening on port ${process.env.PORT || 10000}`);
 });
 
 const reply = (interaction, content, extra = {}) => interaction.reply({ content, ephemeral: true, ...extra });
@@ -67,15 +90,21 @@ async function execute(interaction) {
   }
 
   const sub = interaction.options.getSubcommand(false);
-  return reply(interaction, `✅ \/${name}${sub ? ` ${sub}` : ''} acknowledged. This module is scaffolded and ready for its persistent configuration and event handlers.`);
+  return reply(interaction, `✅ /${name}${sub ? ` ${sub}` : ''} acknowledged. This module is scaffolded and ready for its persistent configuration and event handlers.`);
 }
 
 client.once('ready', ready => console.log(`Logged in as ${ready.user.tag} | Guild: ${process.env.GUILD_ID}`));
 client.on('interactionCreate', async interaction => {
   if (!interaction.isChatInputCommand()) return;
   if (interaction.guildId !== process.env.GUILD_ID) return reply(interaction, '❌ This bot is private and restricted to its configured server.');
-  if (!commandMap.has(interaction.commandName)) return reply(interaction, '❌ Unknown command. Run `/deploy` again.');
-  try { await execute(interaction); } catch (error) { console.error(error); if (interaction.replied || interaction.deferred) await interaction.editReply('❌ The command failed. Check the bot permissions and role hierarchy.'); else await reply(interaction, '❌ The command failed. Check the bot permissions and role hierarchy.'); }
+  if (!commandMap.has(interaction.commandName)) return reply(interaction, '❌ Unknown command. Run deployment again.');
+  try {
+    await execute(interaction);
+  } catch (error) {
+    console.error(error);
+    if (interaction.replied || interaction.deferred) await interaction.editReply('❌ The command failed. Check the bot permissions and role hierarchy.');
+    else await reply(interaction, '❌ The command failed. Check the bot permissions and role hierarchy.');
+  }
 });
 client.on('error', console.error);
 client.login(process.env.TOKEN);
