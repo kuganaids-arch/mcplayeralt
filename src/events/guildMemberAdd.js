@@ -1,0 +1,1 @@
+// Handles guildMemberAdd events.
