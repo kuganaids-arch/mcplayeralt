@@ -1,5 +1,5 @@
-const { commands } = require('./src/handlers/commandRegistry');
 const { REST, Routes } = require('discord.js');
+const { commands, support } = require('./src/handlers/commandRegistry');
 require('dotenv').config();
 
 for (const key of ['TOKEN', 'CLIENT_ID', 'GUILD_ID']) {
@@ -9,13 +9,16 @@ for (const key of ['TOKEN', 'CLIENT_ID', 'GUILD_ID']) {
 const rest = new REST({ version: '10' }).setToken(process.env.TOKEN);
 (async () => {
   try {
-    console.log(`Registering ${commands.length} guild commands...`);
     await rest.put(Routes.applicationGuildCommands(process.env.CLIENT_ID, process.env.GUILD_ID), {
-      body: commands.map(command => command.toJSON()),
+      body: commands.filter(command => command.name !== 'support').map(command => command.toJSON()),
     });
-    console.log('Guild commands registered successfully.');
+    // /support is also registered globally. Global commands can take up to an hour to propagate.
+    await rest.put(Routes.applicationCommands(process.env.CLIENT_ID), {
+      body: [support.toJSON()],
+    });
+    console.log(`Registered ${commands.length - 1} guild commands and /support globally.`);
   } catch (error) {
-    console.error(error);
+    console.error('Command deployment failed:', error);
     process.exitCode = 1;
   }
 })();
