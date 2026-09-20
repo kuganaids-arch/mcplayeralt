@@ -12,5 +12,11 @@ services:
         sync: false
       - key: GUILD_ID
         sync: false
+      - key: TICKET_PANEL_CHANNEL_ID
+        value: "1551037557452570695"
+      - key: WELCOME_CHANNEL_ID
+        value: "1551038343897415820"
+      - key: TICKET_STAFF_ROLE_ID
+        sync: false
       - key: NODE_VERSION
         value: "18.17.0"

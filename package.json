@@ -1,17 +1,15 @@
 {
   "name": "mcplayeralt",
-  "version": "0.1.1",
-  "description": "Single-server moderation and utility Discord bot for MC_PLAYER ALT.",
+  "version": "0.1.2",
+  "description": "Fast single-server Discord moderation and support bot for MC_PLAYER ALT.",
   "main": "src/index.js",
   "scripts": {
     "start": "node src/index.js",
     "dev": "node --watch src/index.js",
     "deploy": "node deploy-commands.js",
-    "check": "node --check src/index.js && node --check deploy-commands.js && node --check src/handlers/commandRegistry.js && node --check src/commands/support.js"
+    "check": "node --check src/index.js && node --check deploy-commands.js && node --check src/handlers/commandRegistry.js && node --check src/commands/index.js && node --check src/commands/support.js && node --check src/utils/embeds.js"
   },
-  "engines": {
-    "node": ">=18.17.0"
-  },
+  "engines": { "node": ">=18.17.0" },
   "dependencies": {
     "discord.js": "^14.16.3",
     "dotenv": "^16.4.5"
